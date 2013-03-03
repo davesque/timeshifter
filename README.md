@@ -16,3 +16,9 @@ timeshifter 2.5 never_cry_wolf.srt
 ```
 
 `filename` &mdash; the name of the subrip file to modify.
+
+## Notes
+
+`timeshifter` depends on an un-published cabal package located here:
+
+<https://github.com/davesque/nagari>
