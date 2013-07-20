@@ -1,26 +1,10 @@
-{-
- - A SubRip file is:
- - * A collection of sub rip entries
- -
- - A collection of sub rip entries is:
- - * Sub rip entries in a file separated by a newline character
- -
- - A sub rip entry is:
- - * A number then a newline, then
- - * Two time stamps separated by ' --> ' then a newline, then
- - * Any number of lines of text ending with newline characters
- -}
-
 import Nagari
-import ParseSubrip
+import ParseSubrip hiding (index, startTime, endTime, text)
 import Control.Exception
-import Data.Char
 import Data.Fixed
-import Data.List.Utils
 import System.Directory
 import System.Environment
 import System.IO
-import Text.Printf
 
 {-
  - Data Building/Muting Functions
@@ -37,8 +21,8 @@ shiftSubTime interval entry =
           newSeconds      = newTotalSeconds `mod'` 60
 
 shiftSubEntry :: Float -> SubEntry -> SubEntry
-shiftSubEntry interval (SubEntry number startTime endTime text) =
-    SubEntry number newStartTime newEndTime text
+shiftSubEntry interval (SubEntry index startTime endTime text) =
+    SubEntry index newStartTime newEndTime text
     where newStartTime = shiftSubTime interval startTime
           newEndTime   = shiftSubTime interval endTime
 
@@ -78,6 +62,7 @@ dispatch :: [String] -> IO ()
 dispatch (interval:filename:[]) = shiftEntries (read interval) filename
 dispatch _ = printUsage
 
+main :: IO ()
 main = do
     args <- getArgs
     dispatch args

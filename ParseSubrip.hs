@@ -1,8 +1,6 @@
 module ParseSubrip where
 
 import Prelude hiding (return, iterate)
-import Data.Char
-import Data.Map (Map, fromList, insert)
 import Data.List.Utils
 import Text.Printf
 
@@ -25,21 +23,21 @@ data SubEntry = SubEntry { index :: SubIndex
                          }
 
 instance Show SubTime where
-    show (SubTime hour minute second) =
+    show (SubTime stHour stMinute stSecond) =
         fHour   ++ ":" ++
         fMinute ++ ":" ++
         replace "." "," fSecond
-        where fHour   = printf "%02d" hour
-              fMinute = printf "%02d" minute
-              fSecond = printf "%06.3f" second
+        where fHour   = printf "%02d" stHour
+              fMinute = printf "%02d" stMinute
+              fSecond = printf "%06.3f" stSecond
 
 instance Show SubEntry where
-    show (SubEntry number startTime endTime text) =
-        fNumber ++ "\n" ++
-        fTime   ++ "\n" ++
-        text    ++ "\n"
-        where fNumber = show number
-              fTime   = show startTime ++ " --> " ++ show endTime
+    show (SubEntry seIndex seStartTime seEndTime seText) =
+        fIndex ++ "\n" ++
+        fTime  ++ "\n" ++
+        seText ++ "\n"
+        where fIndex = show seIndex
+              fTime  = show seStartTime ++ " --> " ++ show seEndTime
 
 ---------------------
 -- Grammar parsers --
@@ -81,4 +79,5 @@ subText = (iterateUntil "\n\n" >>> (++"\n")) #- double
 
 subEntry :: Parser SubEntry
 subEntry = subNumber # subRange # subText
-    >>> (\((ind, (t1, t2)), text) -> SubEntry ind t1 t2 text)
+    >>> (\((seIndex, (seStartTime, seEndTime)), seText) ->
+            SubEntry seIndex seStartTime seEndTime seText)
