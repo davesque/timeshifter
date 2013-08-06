@@ -1,5 +1,5 @@
 name:                timeshifter
-version:             0.1.0.0
+version:             0.2.0.0
 synopsis:            Shift time entries in subrip files
 homepage:            https://github.com/davesque/timeshifter
 license:             MIT
@@ -12,5 +12,5 @@ cabal-version:       >=1.8
 
 executable timeshifter
   main-is:             Timeshifter.hs
-  build-depends:       base ==4.5.*, containers ==0.4.*, nagari ==0.1.*, directory ==1.1.*,
+  build-depends:       base ==4.5.*, containers ==0.4.*, nagari ==0.2.*, directory ==1.1.*,
                        MissingH ==1.2.*

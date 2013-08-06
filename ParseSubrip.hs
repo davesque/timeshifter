@@ -1,6 +1,6 @@
 module ParseSubrip where
 
-import Prelude hiding (return, iterate)
+import Prelude hiding (iterate, map, take, or)
 import Data.List.Utils
 import Text.Printf
 
@@ -53,31 +53,46 @@ comma :: Parser Char
 comma = lit ','
 
 twoDigitInt :: Parser Int
-twoDigitInt = iterate digit 2 >>> read
+twoDigitInt = map read $ take 2 digit
 
--- | Doesn't really need err message since only used in function which has err
--- message.
 seconds :: Parser Float
-seconds = iterate digit 2 #- comma # iterate digit 3
-    >>> (\(whole, fractional) -> read $ whole ++ "." ++ fractional)
+seconds = do
+    whole <- take 2 digit
+    comma
+    fractional <- take 3 digit
+    return $ read (whole ++ "." ++ fractional)
 
 subNumber :: Parser SubIndex
-subNumber = number #- newline
+subNumber = do
+    x <- number
+    newline
+    return x
 
 subTime :: Parser SubTime
-subTime = twoDigitInt #- colon # twoDigitInt #- colon # seconds
-    >>> (\((h, m), s) -> SubTime h m s)
-    ! err "Illegal sub rip time entry"
+subTime = (do
+    h <- twoDigitInt
+    colon
+    m <- twoDigitInt
+    colon
+    s <- seconds
+    return $ SubTime h m s) `or` err "Illegal sub rip time entry"
 
 subRange :: Parser (SubTime, SubTime)
-subRange = subTime #- accept " --> " # subTime #- newline
-         ! err "Illegal sub rip time range"
+subRange = (do
+    start <- subTime
+    accept " --> "
+    end <- subTime
+    return (start, end)) `or` err "Illegal sub rip time range"
 
 subText :: Parser SubText
-subText = (iterateUntil "\n\n" >>> (++"\n")) #- double
-        ! err "Illegal sub rip text"
+subText = (do
+    str <- takeUntil "\n\n"
+    take 2 $ lit '\n'
+    return $ str ++ "\n") `or` err "Illegal sub rip text"
 
 subEntry :: Parser SubEntry
-subEntry = subNumber # subRange # subText
-    >>> (\((seIndex, (seStartTime, seEndTime)), seText) ->
-            SubEntry seIndex seStartTime seEndTime seText)
+subEntry = do
+    seIndex <- subNumber
+    (seStartTime, seEndTime) <- subRange
+    seText <- subText
+    return $ SubEntry seIndex seStartTime seEndTime seText
