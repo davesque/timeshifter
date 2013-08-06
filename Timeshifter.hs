@@ -61,6 +61,4 @@ dispatch (interval:filename:[]) = shiftEntries (read interval) filename
 dispatch _ = printUsage
 
 main :: IO ()
-main = do
-    args <- getArgs
-    dispatch args
+main = getArgs >>= dispatch
