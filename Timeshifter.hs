@@ -1,4 +1,4 @@
-import Nagari
+import Nagari hiding (map)
 import ParseSubrip hiding (index, startTime, endTime, text)
 import Control.Exception
 import Data.Fixed
@@ -26,10 +26,6 @@ shiftSubEntry interval (SubEntry index startTime endTime text) =
     where newStartTime = shiftSubTime interval startTime
           newEndTime   = shiftSubTime interval endTime
 
-cleanEntries :: Maybe ([SubEntry], String) -> [SubEntry]
-cleanEntries Nothing = error "Illegal subrip entry found!"
-cleanEntries (Just (es, _)) = es
-
 {-
  - IO/Main
  -}
@@ -37,9 +33,11 @@ shiftEntries :: Float -> String -> IO ()
 shiftEntries interval filename = do
     contents <- readFile filename
 
-    let maybeEntries = iterateWhile subEntry contents
-        entries      = cleanEntries maybeEntries
-        newEntries   = map (shiftSubEntry interval) entries
+    let parseResult = runParser (takeAll subEntry) contents
+        entries     = if null parseResult
+                      then error "Could not parse sub rip entries!"
+                      else fst . head $ parseResult
+        newEntries  = map (shiftSubEntry interval) entries
 
     bracketOnError (openTempFile "." "temp")
         (\(tempName, tempHandle) -> do
